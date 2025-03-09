@@ -1,22 +1,28 @@
-﻿using LukeMods.Common;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿namespace OxyPlant;
+#if BELOWZERO
 
-namespace LukeMods.OxygenPlant
+using Nautilus.Json;
+using Nautilus.Options.Attributes;
+using Newtonsoft.Json;
+
+[Menu(MyPluginInfo.PLUGIN_NAME)]
+public class Config : ConfigFile
 {
-    public class Config : BaseConfig
-    {
-        public static readonly Config Instance = new Config();
+    public static Config Instance {get;} = Nautilus.Handlers.OptionsPanelHandler.RegisterModOptions<Config>();
 
-        public float Duration { get; set; } = 60f;
-        public float Capacity { get; set; } = 70f;
+	public static bool Loaded => Instance != null;
 
-        private Config()
-        {
-        }
+	[JsonProperty("Duration")]
+    [Slider("Duration", 1f, 600f, DefaultValue = 60f, Step = 1f)]
+    public float duration = 60f;
 
-    }
+    [JsonProperty("Capacity")]
+    [Slider("Capacity", 1f, 100f, DefaultValue = 70f, Step = 1f)]
+    public float capacity = 70f;
+
+    public static float Duration => Instance.duration;
+
+    public static float Capacity => Instance.capacity;
 }
+
+#endif

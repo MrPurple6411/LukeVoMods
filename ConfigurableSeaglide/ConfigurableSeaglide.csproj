@@ -1,8 +1,0 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-	<PropertyGroup>
-		<AssemblyName>LVConfigurableSeaglide</AssemblyName>
-		<Product>LukeMods ConfigurableSeaglide (Purple Edition)</Product>
-		<Version>1.0.0</Version>
-		<OutputPath>$(SolutionDir)bin\$(Configuration)\$(AssemblyName)\</OutputPath>
-	</PropertyGroup>
-</Project>

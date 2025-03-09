@@ -1,22 +1,12 @@
-﻿using HarmonyLib;
-using QModManager.Utility;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿namespace FasterGrowth;
 
-namespace LukeMods.FasterGrowth
+using HarmonyLib;
+
+[HarmonyPatch(typeof(GrowingPlant), nameof(GrowingPlant.GetGrowthDuration))]
+public class GrowingPlantPatcher
 {
-
-    [HarmonyPatch(typeof(GrowingPlant), "GetGrowthDuration")]
-    public class GrowingPlantPatcher
+    public static void Postfix(ref float __result)
     {
-        public static void Postfix(ref float __result)
-        {
-            __result *= Config.Instance.DurationMultiplier;
-        }
-
+        __result *= Config.DurationMultiplier;
     }
-
 }

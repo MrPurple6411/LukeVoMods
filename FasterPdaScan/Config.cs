@@ -1,21 +1,19 @@
-﻿using LukeMods.Common;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿namespace FasterPdaScan;
 
-namespace LukeMods.FasterPdaScan
+using Nautilus.Json;
+using Nautilus.Options.Attributes;
+using Newtonsoft.Json;
+
+[Menu(MyPluginInfo.PLUGIN_NAME)]
+public class Config : ConfigFile
 {
-    public class Config : BaseConfig
-    {
-        public static readonly Config Instance = new Config();
+    public static Config Instance {get;} = Nautilus.Handlers.OptionsPanelHandler.RegisterModOptions<Config>();
 
-        public float ScanTimeMultiplier { get; set; } = .5f;
+    public static bool Loaded => Instance != null;
 
-        private Config()
-        {
-        }
+    [JsonProperty("ScanTimeMultiplier")]
+    [Slider("Scan Time Multiplier", 0.01f, 4f, DefaultValue = 0.5f, Step = 0.01f)]
+    public float scanTimeMultiplier = .5f;
 
-    }
+    public static float ScanTimeMultiplier => Instance.scanTimeMultiplier;
 }

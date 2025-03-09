@@ -1,28 +1,23 @@
-﻿using HarmonyLib;
-using QModManager.Utility;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿namespace OPBlade;
 
-namespace LukeMods.OPBladeBZ
+using HarmonyLib;
+
+[HarmonyPatch(typeof(Knife), nameof(Knife.OnToolUseAnim))]
+public class KnifePatch
 {
 
-    [HarmonyPatch(typeof(Knife), "OnToolUseAnim", new Type[] { typeof(GUIHand), })]
-    public class KnifePatch
+    public static void Prefix(Knife __instance)
     {
-
-        public static void Prefix(GUIHand hand, Knife __instance)
+        if (__instance is HeatBlade)
         {
-            var conf = Config.Instance;
-            var data = __instance is HeatBlade ? conf.HeatBlade : conf.Knife;
-
-            __instance.damage = data.Damage;
-            __instance.attackDist = data.Range;
-            __instance.spikeyTrapDamage = data.SpikyTrapDamage;
+            __instance.damage = Config.HeatBladeDamage;
+            __instance.attackDist = Config.HeatBladeRange;
+            __instance.spikeyTrapDamage = Config.HeatBladeSpikyTrapDamage;
+            return;
         }
 
+        __instance.damage = Config.KnifeDamage;
+        __instance.attackDist = Config.KnifeRange;
+        __instance.spikeyTrapDamage = Config.KnifeSpikyTrapDamage;
     }
-
 }

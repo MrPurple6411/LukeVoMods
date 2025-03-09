@@ -1,136 +1,114 @@
-﻿using HarmonyLib;
-using LukeMods.Common;
-using System;
+﻿namespace SeaglideOvercharge.Patches;
+
+using HarmonyLib;
+using SeaglideOvercharge;
 using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using UnityEngine;
 
-namespace LukeMods.SeaglideOvercharge.Patches
+[HarmonyPatch(typeof(Seaglide))]
+public static class SeaglidePatches
 {
+    static bool AnnouncementShown = false;
+    static readonly Dictionary<Seaglide, SeaglideOverchargeInfo> info = new();
 
-    [HarmonyPatch(typeof(Seaglide))]
-    public static class SeaglidePatches
+    public static SeaglideOverchargeInfo recentOvercharge;
+
+    public static SeaglideOverchargeInfo GetOrCreateInfo(this Seaglide seaglide)
     {
-        static readonly FieldInfo activeState = AccessTools.Field(typeof(Seaglide), nameof(activeState));
-        static readonly FieldInfo energyMixin = AccessTools.Field(typeof(Seaglide), nameof(energyMixin));
-
-        static readonly MethodInfo SetMotorMode = AccessTools.Method(typeof(Player), nameof(SetMotorMode));
-
-        static bool AnnouncementShown = false;
-        static Dictionary<Seaglide, SeaglideOverchargeInfo> info = new Dictionary<Seaglide, SeaglideOverchargeInfo>();
-
-        public static SeaglideOverchargeInfo recentOvercharge;
-
-        static Config C = Config.Instance;
-
-        public static SeaglideOverchargeInfo GetOrCreateInfo(this Seaglide seaglide)
+        if (!info.TryGetValue(seaglide, out var result))
         {
-            if (!info.TryGetValue(seaglide, out var result))
-            {
-                result = info[seaglide] = new SeaglideOverchargeInfo(seaglide);
-            }
-
-            return result;
+            result = info[seaglide] = new SeaglideOverchargeInfo(seaglide);
         }
 
-        [HarmonyPatch(nameof(Update)), HarmonyPostfix]
-        public static void Update(Seaglide __instance)
-        {
-            var info = __instance.GetOrCreateInfo();
-            if (info.overchargeTime > 0)
-            {
-                info.overchargeTime = Mathf.Max(0, info.overchargeTime - Time.deltaTime);
-
-                if (info.overchargeTime <= 0)
-                {
-                    ResetMotorMode();
-                }
-            }
-
-            if ((bool)activeState.GetValue(__instance))
-            {
-                if (!AnnouncementShown)
-                {
-                    AnnouncementShown = true;
-                    ErrorMessage.AddError($"Press {C.OverchargeKey.ToUpper()} to activate Overcharge.");
-                }
-
-                if (Input.GetKeyDown(C.OverchargeKey.ToLower()))
-                {
-                    TryActivatingOvercharge(info);
-                }
-            }
-        }
-
-        static void TryActivatingOvercharge(SeaglideOverchargeInfo info)
-        {
-            // Only activate if none is activated
-            if (info.overchargeTime > 0)
-            {
-                ErrorMessage.AddError("Seaglide is still in Overcharged mode");
-                return;
-            }
-
-            // Check battery
-            var c = C;
-            var batteryConsumption = c.OverchargeBatteryCost;
-            var energyConsumption = c.OverchargeEnergyConsumption;
-            var eMixin = (EnergyMixin)energyMixin.GetValue(info.seaglide);
-            var battery = eMixin.GetBattery() as Battery;
-            if (battery == null || battery.capacity <= batteryConsumption || battery.charge <= energyConsumption)
-            {
-                ErrorMessage.AddError("Not enough battery charge");
-                return;
-            }
-
-            var player = Player.main;
-            if (player == null)
-            {
-                ModUtils.LogDebug("Player null");
-                return;
-            }
-
-            // Boost
-            info.overchargeTime = c.OverchargeDuration;
-            info.overchargeMul = c.OverchargeBoost;
-            eMixin.ConsumeEnergy(energyConsumption);
-            battery._capacity -= batteryConsumption;
-
-            recentOvercharge = info;
-
-            // Set new Motor Mode to player to update speed
-            ResetMotorMode(player);
-
-            ErrorMessage.AddError($"Seaglide Overcharged for {(int)info.overchargeTime} seconds.");
-        }
-
-        static void ResetMotorMode(Player player = null)
-        {
-            if (player == null) { player = Player.main; }
-            if (player == null) { return; }
-
-            SetMotorMode.Invoke(player, new object[] { Player.MotorMode.Dive, });
-            SetMotorMode.Invoke(player, new object[] { Player.MotorMode.Seaglide, });
-        }
-
+        return result;
     }
 
-    public class SeaglideOverchargeInfo
+    [HarmonyPatch(nameof(Update)), HarmonyPostfix]
+    public static void Update(Seaglide __instance)
     {
-
-        public Seaglide seaglide;
-
-        public float overchargeTime = 0f;
-        public float overchargeMul = 0f;
-
-        public SeaglideOverchargeInfo(Seaglide seaglide)
+        var info = __instance.GetOrCreateInfo();
+        if (info.overchargeTime > 0)
         {
-            this.seaglide = seaglide;
+            info.overchargeTime = Mathf.Max(0, info.overchargeTime - Time.deltaTime);
+
+            if (info.overchargeTime <= 0)
+            {
+                ResetMotorMode();
+            }
         }
 
+        if (__instance.activeState)
+        {
+            if (!AnnouncementShown)
+            {
+                AnnouncementShown = true;
+                ErrorMessage.AddError($"Press {Config.OverchargeKey} to activate Overcharge.");
+            }
+
+            if (Input.GetKeyDown(Config.OverchargeKey))
+            {
+                TryActivatingOvercharge(info);
+            }
+        }
     }
 
+    static void TryActivatingOvercharge(SeaglideOverchargeInfo info)
+    {
+        // Only activate if none is activated
+        if (info.overchargeTime > 0)
+        {
+            ErrorMessage.AddError("Seaglide is still in Overcharged mode");
+            return;
+        }
+
+        // Check battery
+        var energyConsumption = Config.OverchargeEnergyConsumption;
+        var eMixin = info.seaglide.energyMixin;
+        if (eMixin.charge <= energyConsumption)
+        {
+            ErrorMessage.AddError("Not enough battery charge");
+            return;
+        }
+
+        var player = Player.main;
+        if (player == null)
+        {
+            Plugin.Logger.LogDebug("Player null");
+            return;
+        }
+
+        // Boost
+        info.overchargeTime = Config.OverchargeDuration;
+        info.overchargeMul = Config.OverchargeBoost;
+        eMixin.ConsumeEnergy(energyConsumption);
+
+        recentOvercharge = info;
+
+        // Set new Motor Mode to player to update speed
+        ResetMotorMode(player);
+
+        ErrorMessage.AddError($"Seaglide Overcharged for {(int)info.overchargeTime} seconds.");
+    }
+
+    static void ResetMotorMode(Player player = null)
+    {
+        if (player == null) { player = Player.main; }
+        if (player == null) { return; }
+
+        player.SetMotorMode(Player.MotorMode.Dive);
+        player.SetMotorMode(Player.MotorMode.Seaglide);
+    }
+}
+
+public class SeaglideOverchargeInfo
+{
+    public Seaglide seaglide;
+
+    public float overchargeTime = 0f;
+    public float overchargeMul = 0f;
+
+    public SeaglideOverchargeInfo(Seaglide seaglide)
+    {
+        this.seaglide = seaglide;
+    }
 }

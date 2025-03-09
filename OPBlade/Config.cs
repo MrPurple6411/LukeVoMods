@@ -1,31 +1,45 @@
-﻿using LukeMods.Common;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿namespace OPBlade;
 
-namespace LukeMods.OPBladeBZ
+using Nautilus.Json;
+using Nautilus.Options.Attributes;
+using Newtonsoft.Json;
+
+[Menu(MyPluginInfo.PLUGIN_NAME)]
+public class Config : ConfigFile
 {
+    public static Config Instance {get;} = Nautilus.Handlers.OptionsPanelHandler.RegisterModOptions<Config>();
 
-    public class Config : BaseConfig
-    {
-        public static readonly Config Instance = new Config();
+	public static bool Loaded => Instance != null;
 
-        public KnifeConfig Knife { get; set; } = new KnifeConfig() { Range = 10, Damage = 80, SpikyTrapDamage = 4f, };
-        public KnifeConfig HeatBlade { get; set; } = new KnifeConfig() { Range = 10, Damage = 40, SpikyTrapDamage = 8f, };
+	[JsonProperty("KnifeRange")]
+    [Slider("Knife Range", 1f, 200f, DefaultValue = 10f, Step = 1f)]
+    public float knifeRange = 10f;
 
-        private Config()
-        {
-        }
+    [JsonProperty("KnifeDamage")]
+    [Slider("Knife Damage", 1f, 10000f, DefaultValue = 80f, Step = 1f)]
+    public float knifeDamage = 80f;
 
-        public class KnifeConfig
-        {
-            public float Range { get; set; } = 10F;
-            public float Damage { get; set; } = 80F;
-            public float SpikyTrapDamage { get; set; } = 4f;
-        }
+    [JsonProperty("KnifeSpikyTrapDamage")]
+    [Slider("Knife Spiky Trap Damage", 1f, 100f, DefaultValue = 4f, Step = 1f)]
+    public float knifeSpikyTrapDamage = 4f;
 
-    }
+    [JsonProperty("HeatBladeRange")]
+    [Slider("Heat Blade Range", 1f, 200f, DefaultValue = 10f, Step = 1f)]
+    public float heatBladeRange = 10f;
+
+    [JsonProperty("HeatBladeDamage")]
+    [Slider("Heat Blade Damage", 1f, 10000f, DefaultValue = 40f, Step = 1f)]
+    public float heatBladeDamage = 40f;
+
+    [JsonProperty("HeatBladeSpikyTrapDamage")]
+    [Slider("Heat Blade Spiky Trap Damage", 1f, 100f, DefaultValue = 8f, Step = 1f)]
+    public float heatBladeSpikyTrapDamage = 8f;
+
+    public static float KnifeRange => Instance.knifeRange;
+    public static float KnifeDamage => Instance.knifeDamage;
+    public static float KnifeSpikyTrapDamage => Instance.knifeSpikyTrapDamage;
+    public static float HeatBladeRange => Instance.heatBladeRange;
+    public static float HeatBladeDamage => Instance.heatBladeDamage;
+    public static float HeatBladeSpikyTrapDamage => Instance.heatBladeSpikyTrapDamage;
 
 }

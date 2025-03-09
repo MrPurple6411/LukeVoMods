@@ -1,28 +1,19 @@
-﻿using LukeMods.Common;
+﻿namespace FasterGrowth;
+
+using Nautilus.Json;
+using Nautilus.Options.Attributes;
 using Newtonsoft.Json;
-using QModManager.Utility;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace LukeMods.FasterGrowth
+[Menu(MyPluginInfo.PLUGIN_NAME)]
+public class Config : ConfigFile
 {
+    public static Config Instance {get;} = Nautilus.Handlers.OptionsPanelHandler.RegisterModOptions<Config>();
 
-    public class Config : BaseConfig
-    {
-        public static readonly Config Instance = new Config();
-        
-        public float DurationMultiplier { get; set; } = .01F;
-        
-        private Config()
-        {
-            Logger.Log(Logger.Level.Debug, "Loaded config, Duration Mul: " + this.DurationMultiplier, null, true);
-        }
+	public static bool Loaded => Instance != null;
 
-    }
+	[JsonProperty("DurationMultiplier")]
+    [Slider("Duration Multiplier", 0.01f, 4f, DefaultValue = 0.01f, Step = 0.01f)]
+    public float durationMultiplier = .01f;
 
+    public static float DurationMultiplier => Instance.durationMultiplier;
 }

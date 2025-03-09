@@ -1,22 +1,24 @@
-﻿using LukeMods.Common;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿namespace FasterPrawnDrill;
 
-namespace LukeMods.FasterPrawnDrill
+using Nautilus.Json;
+using Nautilus.Options.Attributes;
+using Newtonsoft.Json;
+
+[Menu(MyPluginInfo.PLUGIN_NAME)]
+public class Config : ConfigFile
 {
-    public class Config : BaseConfig
-    {
-        public static readonly Config Instance = new Config();
+    public static Config Instance {get;} = Nautilus.Handlers.OptionsPanelHandler.RegisterModOptions<Config>();
 
-        public float MaxDrillHealth { get; set; } = 50;
-        public float AddOtherDamage { get; set; } = 16;
+	public static bool Loaded => Instance != null;
 
-        private Config()
-        {
-        }
+	[JsonProperty("MaxDrillHealth")]
+    [Slider("Max Drill Health", 1f, 100f, DefaultValue = 50f, Step = 1f)]
+    public float maxDrillHealth = 50f;
 
-    }
+    [JsonProperty("AddOtherDamage")]
+    [Slider("Add Other Damage", 1f, 100f, DefaultValue = 16f, Step = 1f)]
+    public float addOtherDamage = 16f;
+
+    public static float MaxDrillHealth => Instance.maxDrillHealth;
+    public static float AddOtherDamage => Instance.addOtherDamage;
 }

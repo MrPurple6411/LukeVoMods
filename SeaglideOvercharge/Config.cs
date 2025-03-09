@@ -1,25 +1,36 @@
-﻿using LukeMods.Common;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿namespace SeaglideOvercharge;
 
-namespace LukeMods.SeaglideOvercharge
+using Nautilus.Json;
+using Nautilus.Options.Attributes;
+using Newtonsoft.Json;
+using UnityEngine;
+
+[Menu(MyPluginInfo.PLUGIN_NAME)]
+public class Config : ConfigFile
 {
-    public class Config : BaseConfig
-    {
-        public static readonly Config Instance = new Config();
+    public static Config Instance {get;} = Nautilus.Handlers.OptionsPanelHandler.RegisterModOptions<Config>();
 
-        public float OverchargeDuration { get; set; } = 15f;
-        public float OverchargeBoost { get; set; } = 2.5f;
-        public float OverchargeBatteryCost { get; set; } = 20f;
-        public float OverchargeEnergyConsumption { get; set; } = 20f;
-        public string OverchargeKey { get; set; } = "t";
+	public static bool Loaded => Instance != null;
 
-        private Config()
-        {
-        }
+	[JsonProperty("OverchargeDuration")]
+    [Slider("Overcharge Duration", 1f, 60f, DefaultValue = 15f, Step = 1f)]
+    public float overchargeDuration = 15f;
 
-    }
+    [JsonProperty("OverchargeBoost")]
+    [Slider("Overcharge Boost", 1f, 10f, DefaultValue = 2.5f, Step = 0.1f)]
+    public float overchargeBoost = 2.5f;
+
+    [JsonProperty("OverchargeEnergyConsumption")]
+    [Slider("Overcharge Energy Consumption", 1f, 100f, DefaultValue = 20f, Step = 1f)]
+    public float overchargeEnergyConsumption = 20f;
+
+    [JsonProperty("OverchargeKey")]
+    [Keybind("Overcharge Key")]
+    public KeyCode overchargeKey = KeyCode.T;
+
+    public static float OverchargeDuration => Instance.overchargeDuration;
+    public static float OverchargeBoost => Instance.overchargeBoost;
+    public static float OverchargeEnergyConsumption => Instance.overchargeEnergyConsumption;
+    public static KeyCode OverchargeKey => Instance.overchargeKey;
+
 }
